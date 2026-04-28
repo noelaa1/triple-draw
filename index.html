@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triple Draw — Casino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root{
+    --bg-0:#070512;
+    --bg-1:#0d0826;
+    --bg-2:#1a0a3a;
+    --blue:#3b9eff;
+    --blue-soft:#5fb0ff;
+    --pink:#ff2d92;
+    --pink-soft:#ff6bb5;
+    --cyan:#00e5ff;
+    --gold:#ffd54a;
+    --txt:#e8eaff;
+    --txt-dim:#9aa0c8;
+    --green:#3ddc97;
+    --red:#ff4d6d;
+    --line:rgba(120,80,200,.25);
+  }
+
+  html,body{height:100%}
+  body{
+    font-family:'Rajdhani',system-ui,sans-serif;
+    color:var(--txt);
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59,158,255,.18), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 80% 90%, rgba(255,45,146,.22), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 50% 50%, rgba(106,52,219,.15), transparent 70%),
+      linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 35%, var(--bg-2) 70%, var(--bg-1) 100%);
+    background-attachment:fixed;
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(120,80,200,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,80,200,.05) 1px, transparent 1px);
+    background-size:48px 48px;
+    pointer-events:none;
+    z-index:0;
+    animation:gridDrift 30s linear infinite;
+  }
+  @keyframes gridDrift{
+    from{ transform:translate(0,0); }
+    to{ transform:translate(48px,48px); }
+  }
+
+  /* Drifting orb backdrop */
+  .orb{
+    position:fixed; pointer-events:none; z-index:0;
+    border-radius:50%;
+    filter:blur(80px);
+    opacity:.35;
+  }
+  .orb-1{
+    width:500px; height:500px; top:-10%; left:-10%;
+    background:radial-gradient(circle, var(--blue), transparent 70%);
+    animation:orbA 22s ease-in-out infinite;
+  }
+  .orb-2{
+    width:600px; height:600px; bottom:-15%; right:-10%;
+    background:radial-gradient(circle, var(--pink), transparent 70%);
+    animation:orbB 28s ease-in-out infinite;
+  }
+  .orb-3{
+    width:400px; height:400px; top:40%; left:50%;
+    background:radial-gradient(circle, var(--cyan), transparent 70%);
+    animation:orbC 25s ease-in-out infinite;
+    opacity:.18;
+  }
+  @keyframes orbA{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(120px,80px) scale(1.15); }
+  }
+  @keyframes orbB{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(-100px,-60px) scale(1.2); }
+  }
+  @keyframes orbC{
+    0%,100%{ transform:translate(-50%,-50%) scale(1); }
+    50%{ transform:translate(-30%,-70%) scale(1.3); }
+  }
+
+  /* PARTICLE CANVAS */
+  #particles{
+    position:fixed; inset:0;
+    pointer-events:none;
+    z-index:5;
+  }
+
+  .stage{
+    position:relative;
+    z-index:1;
+    min-height:100vh;
+    padding:24px 32px 32px;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    gap:24px;
+    max-width:1400px;
+    margin:0 auto;
+  }
+
+  /* TOP BAR */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 20px;
+    background:linear-gradient(90deg, rgba(20,15,45,.7), rgba(40,20,70,.5), rgba(20,15,45,.7));
+    border:1px solid var(--line);
+    border-radius:16px;
+    backdrop-filter:blur(20px);
+    animation:slideDown .8s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes slideDown{
+    from{ opacity:0; transform:translateY(-20px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .logo{ display:flex; align-items:center; gap:14px; }
+  .logo-mark{
+    width:42px;height:42px; border-radius:12px;
+    background:linear-gradient(135deg,var(--blue) 0%, var(--pink) 100%);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron'; font-weight:900; font-size:18px;
+    color:#fff;
+    box-shadow:0 0 20px rgba(255,45,146,.5);
+    position:relative;
+    animation:logoGlow 3s ease-in-out infinite;
+  }
+  @keyframes logoGlow{
+    0%,100%{ box-shadow:0 0 20px rgba(255,45,146,.5); }
+    50%{ box-shadow:0 0 30px rgba(59,158,255,.7); }
+  }
+  .logo-text{
+    font-family:'Orbitron'; font-weight:800;
+    font-size:20px; letter-spacing:.18em;
+    background:linear-gradient(90deg,var(--blue-soft),var(--pink-soft));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .logo-tag{
+    font-family:'Rajdhani'; font-weight:500;
+    font-size:11px; letter-spacing:.3em;
+    color:var(--txt-dim); margin-top:2px;
+  }
+  .nav{ display:flex; gap:6px; }
+  .nav button{
+    padding:8px 16px;
+    font-family:'Rajdhani'; font-weight:600; font-size:13px;
+    color:var(--txt-dim); background:none; border:none; cursor:pointer;
+    letter-spacing:.15em; text-transform:uppercase;
+    border-radius:8px;
+    transition:.2s;
+  }
+  .nav button.active{ color:var(--blue-soft); background:rgba(59,158,255,.12); }
+  .nav button:hover{ color:#fff; background:rgba(59,158,255,.08); }
+
+  .balance{
+    display:flex; align-items:center; gap:14px;
+    padding:10px 18px;
+    background:linear-gradient(90deg, rgba(255,45,146,.15), rgba(59,158,255,.15));
+    border:1px solid rgba(255,45,146,.4);
+    border-radius:12px;
+    box-shadow:0 0 24px rgba(255,45,146,.3);
+    transition:.3s;
+  }
+  .balance.flash-up{ animation:flashGreen 1s ease-out; }
+  .balance.flash-down{ animation:flashRed 1s ease-out; }
+  @keyframes flashGreen{
+    0%{ box-shadow:0 0 60px rgba(61,220,151,.9); border-color:var(--green); }
+    100%{ box-shadow:0 0 24px rgba(255,45,146,.3); }
+  }
+  @keyframes flashRed{
+    0%{ box-shadow:0 0 60px rgba(255,77,109,.9); border-color:var(--red); }
+    100%{ box-shadow:0 0 24px rgba(255,45,146,.3); }
+  }
+  .balance-label{
+    font-family:'Rajdhani'; font-size:10px;
+    color:var(--pink-soft);
+    letter-spacing:.25em; text-transform:uppercase;
+    font-weight:600;
+  }
+  .balance-amount{
+    font-family:'Orbitron'; font-weight:700;
+    font-size:22px; color:#fff; letter-spacing:.05em;
+  }
+  .balance-amount span{ color:var(--gold); }
+
+  /* MAIN GRID */
+  .main{
+    display:grid;
+    grid-template-columns:1.15fr 280px;
+    gap:24px;
+    align-items:stretch;
+    animation:fadeUp 1s cubic-bezier(.2,.8,.2,1) .15s both;
+  }
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(20px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* TABLE */
+  .table{
+    position:relative;
+    background:radial-gradient(ellipse at 50% 40%, rgba(59,158,255,.12), transparent 60%),
+               linear-gradient(180deg, rgba(20,15,45,.55), rgba(10,7,30,.75));
+    border:1px solid var(--line);
+    border-radius:24px;
+    padding:30px 30px 24px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    min-height:560px;
+  }
+  .table::before{
+    content:''; position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(59,158,255,.12), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(255,45,146,.12), transparent 40%);
+    pointer-events:none;
+  }
+  .table-head{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    margin-bottom:8px;
+    position:relative; z-index:1;
+  }
+  .deal-title{
+    font-family:'Orbitron'; font-weight:700;
+    font-size:13px; color:var(--cyan);
+    letter-spacing:.3em; text-transform:uppercase;
+  }
+  .deal-status{
+    font-family:'Rajdhani'; font-weight:500;
+    font-size:12px; color:var(--txt-dim);
+    letter-spacing:.15em; text-transform:uppercase;
+  }
+  .deal-status .live{
+    display:inline-block; width:8px; height:8px;
+    background:var(--green); border-radius:50%;
+    box-shadow:0 0 10px var(--green);
+    margin-right:6px; vertical-align:middle;
+    animation:pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:1; }
+    50%{ opacity:.4; }
+  }
+
+  /* CARDS */
+  .cards{
+    flex:1;
+    display:flex; gap:24px;
+    align-items:center; justify-content:center;
+    padding:30px 0;
+    position:relative; z-index:1;
+    perspective:1200px;
+  }
+  .card-wrap{
+    width:165px; height:235px;
+    perspective:1000px;
+  }
+  .card{
+    width:100%; height:100%;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform .7s cubic-bezier(.4,0,.2,1);
+  }
+  .card.flipped{ transform:rotateY(180deg); }
+  .card-face{
+    position:absolute; inset:0;
+    backface-visibility:hidden;
+    border-radius:14px;
+    overflow:hidden;
+  }
+  .card-back{
+    background:
+      linear-gradient(135deg, rgba(59,158,255,.4), rgba(255,45,146,.4)),
+      linear-gradient(45deg, #1a0a3a, #0d0826);
+    border:1px solid rgba(59,158,255,.6);
+    box-shadow:
+      0 0 24px rgba(59,158,255,.3),
+      0 12px 32px rgba(0,0,0,.5);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .card-back::before{
+    content:''; position:absolute; inset:8px;
+    border:1px solid rgba(255,45,146,.4);
+    border-radius:8px;
+  }
+  .card-back-mark{
+    font-family:'Orbitron'; font-weight:900; font-size:42px;
+    background:linear-gradient(135deg, var(--blue-soft), var(--pink-soft));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:.1em;
+  }
+  .card-front{
+    transform:rotateY(180deg);
+    background:linear-gradient(135deg,#fafbff 0%,#e8ecff 100%);
+    box-shadow:
+      0 0 0 1px rgba(59,158,255,.5),
+      0 0 32px rgba(59,158,255,.4),
+      0 18px 40px rgba(0,0,0,.55);
+  }
+  .card-corner{
+    position:absolute;
+    font-family:'Orbitron'; font-weight:800;
+    font-size:30px; line-height:1;
+  }
+  .card-corner.tl{ top:14px; left:16px; }
+  .card-corner.br{ bottom:14px; right:16px; transform:rotate(180deg); }
+  .card-corner small{ display:block; font-size:24px; margin-top:2px; }
+  .card-center{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:78px;
+  }
+  .red{ color:#e8275a; }
+  .black{ color:#1a0a2e; }
+  .card.dealing{ animation:dealIn .5s cubic-bezier(.2,.8,.2,1); }
+  @keyframes dealIn{
+    from{ transform:translateY(-200px) rotate(-15deg); opacity:0; }
+    to{ transform:translateY(0) rotate(0); opacity:1; }
+  }
+  .card.win-glow .card-front{
+    box-shadow:
+      0 0 0 2px var(--gold),
+      0 0 40px var(--gold),
+      0 0 80px rgba(255,213,74,.5);
+    animation:winPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes winPulse{
+    0%,100%{ box-shadow:0 0 0 2px var(--gold), 0 0 40px var(--gold), 0 0 80px rgba(255,213,74,.5); }
+    50%{ box-shadow:0 0 0 3px var(--gold), 0 0 60px var(--gold), 0 0 120px rgba(255,213,74,.7); }
+  }
+
+  /* OUTCOME */
+  .outcome{
+    background:linear-gradient(90deg, rgba(255,45,146,.12), rgba(59,158,255,.12));
+    border:1px solid rgba(255,45,146,.35);
+    border-radius:14px;
+    padding:14px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:18px;
+    position:relative; z-index:1;
+    min-height:64px;
+    transition:.3s;
+  }
+  .outcome.win{
+    background:linear-gradient(90deg, rgba(255,213,74,.18), rgba(61,220,151,.18));
+    border-color:var(--gold);
+    box-shadow:0 0 32px rgba(255,213,74,.35);
+  }
+  .outcome.lose{
+    background:linear-gradient(90deg, rgba(255,77,109,.12), rgba(40,20,70,.4));
+    border-color:rgba(255,77,109,.35);
+  }
+  .outcome.show{ animation:slideRight .5s cubic-bezier(.2,.8,.2,1); }
+  @keyframes slideRight{
+    from{ opacity:0; transform:translateX(-30px); }
+    to{ opacity:1; transform:translateX(0); }
+  }
+  .outcome-label{
+    font-family:'Rajdhani'; font-weight:500;
+    font-size:11px; color:var(--pink-soft);
+    letter-spacing:.3em; text-transform:uppercase;
+  }
+  .outcome-name{
+    font-family:'Orbitron'; font-weight:700; font-size:18px;
+    color:#fff; letter-spacing:.08em;
+    margin-top:2px;
+  }
+  .outcome-payout{
+    font-family:'Orbitron'; font-weight:800; font-size:28px;
+    color:var(--gold);
+    text-shadow:0 0 20px rgba(255,213,74,.6);
+    letter-spacing:.05em;
+  }
+  .outcome-payout.neg{ color:var(--red); text-shadow:0 0 20px rgba(255,77,109,.5); }
+  .outcome-payout.zero{ color:var(--txt-dim); text-shadow:none; }
+
+  /* DEAL BUTTON */
+  .deal-btn{
+    width:100%;
+    padding:18px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(90deg,var(--blue) 0%,var(--pink) 100%);
+    color:#fff;
+    font-family:'Orbitron'; font-weight:800; font-size:16px;
+    letter-spacing:.3em; text-transform:uppercase;
+    cursor:pointer;
+    position:relative; z-index:1;
+    box-shadow:0 0 30px rgba(255,45,146,.5), 0 8px 24px rgba(0,0,0,.4);
+    transition:.2s;
+    overflow:hidden;
+  }
+  .deal-btn::before{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+    transform:translateX(-100%);
+    transition:.6s;
+  }
+  .deal-btn:hover::before{ transform:translateX(100%); }
+  .deal-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 0 40px rgba(255,45,146,.7), 0 12px 32px rgba(0,0,0,.5);
+  }
+  .deal-btn:active{ transform:translateY(0) scale(.98); }
+  .deal-btn:disabled{ opacity:.5; cursor:wait; }
+  .deal-btn-sub{
+    display:block; font-family:'Rajdhani'; font-weight:500;
+    font-size:11px; letter-spacing:.2em;
+    margin-top:4px; opacity:.85;
+  }
+
+  /* PANEL */
+  .panel{
+    background:linear-gradient(180deg, rgba(20,15,45,.6), rgba(10,7,30,.75));
+    border:1px solid var(--line);
+    border-radius:24px;
+    padding:22px 18px;
+    display:flex; flex-direction:column;
+    gap:10px;
+  }
+  .panel-title{
+    font-family:'Orbitron'; font-weight:700;
+    font-size:11px; color:var(--cyan);
+    letter-spacing:.3em; text-transform:uppercase;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:6px;
+  }
+  .pay-row{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 12px;
+    background:rgba(20,15,45,.65);
+    border:1px solid var(--line);
+    border-radius:10px;
+    transition:.3s;
+  }
+  .pay-row.lit{
+    background:linear-gradient(90deg, rgba(255,213,74,.18), rgba(255,45,146,.15));
+    border-color:var(--gold);
+    box-shadow:0 0 24px rgba(255,213,74,.4);
+    transform:scale(1.03);
+  }
+  .pay-rank{
+    width:26px;height:26px; flex-shrink:0;
+    border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron'; font-weight:800; font-size:12px;
+    color:#fff;
+  }
+  .pay-row[data-cat="3K"] .pay-rank{ background:linear-gradient(135deg,var(--pink),var(--gold)); }
+  .pay-row[data-cat="3F"] .pay-rank{ background:linear-gradient(135deg,var(--blue),var(--pink)); }
+  .pay-row[data-cat="SC"] .pay-rank{ background:linear-gradient(135deg,var(--blue),var(--cyan)); }
+  .pay-row[data-cat="A"] .pay-rank{ background:rgba(120,80,200,.6); }
+  .pay-row[data-cat="N"] .pay-rank{ background:rgba(80,80,120,.5); }
+  .pay-info{ flex:1; min-width:0; }
+  .pay-name{
+    font-family:'Rajdhani'; font-weight:600; font-size:13px;
+    color:#fff; letter-spacing:.05em;
+  }
+  .pay-prob{
+    font-family:'Rajdhani'; font-weight:400; font-size:10px;
+    color:var(--txt-dim); letter-spacing:.1em; text-transform:uppercase;
+    margin-top:2px;
+  }
+  .pay-amt{
+    font-family:'Orbitron'; font-weight:700; font-size:14px;
+    color:var(--gold); flex-shrink:0;
+  }
+  .pay-row[data-cat="N"] .pay-amt{ color:var(--red); }
+
+  /* STATS */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    animation:fadeUp 1s cubic-bezier(.2,.8,.2,1) .3s both;
+  }
+  .stat{
+    background:linear-gradient(180deg, rgba(20,15,45,.5), rgba(10,7,30,.7));
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 18px;
+    position:relative; overflow:hidden;
+  }
+  .stat::before{
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+    background:linear-gradient(180deg,var(--blue),var(--pink));
+  }
+  .stat-label{
+    font-family:'Rajdhani'; font-weight:500;
+    font-size:10px; color:var(--txt-dim);
+    letter-spacing:.25em; text-transform:uppercase;
+  }
+  .stat-value{
+    font-family:'Orbitron'; font-weight:700; font-size:22px;
+    color:#fff; margin-top:4px; letter-spacing:.05em;
+  }
+  .stat-value.green{ color:var(--green); }
+  .stat-value.pink{ color:var(--pink-soft); }
+  .stat-value.gold{ color:var(--gold); }
+  .stat-value.red{ color:var(--red); }
+
+  /* TOAST */
+  .toast{
+    position:fixed; top:80px; left:50%; transform:translateX(-50%) translateY(-200px);
+    z-index:100;
+    padding:20px 32px;
+    background:linear-gradient(90deg, rgba(255,213,74,.95), rgba(255,45,146,.95));
+    border-radius:16px;
+    box-shadow:0 0 40px rgba(255,213,74,.6), 0 20px 60px rgba(0,0,0,.5);
+    font-family:'Orbitron'; font-weight:800; font-size:24px;
+    color:#1a0a2e; letter-spacing:.2em; text-transform:uppercase;
+    transition:transform .5s cubic-bezier(.2,.8,.2,1);
+    pointer-events:none;
+  }
+  .toast.show{ transform:translateX(-50%) translateY(0); }
+
+  /* RULES OVERLAY */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(7,5,18,.8);
+    backdrop-filter:blur(10px);
+    z-index:200;
+    display:none;
+    align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .overlay.show{ display:flex; animation:fadeIn .3s; }
+  @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+  .overlay-box{
+    max-width:600px; width:100%;
+    background:linear-gradient(180deg, rgba(20,15,45,.95), rgba(10,7,30,.95));
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 0 60px rgba(255,45,146,.4);
+    max-height:85vh; overflow-y:auto;
+  }
+  .overlay-title{
+    font-family:'Orbitron'; font-weight:800; font-size:18px;
+    background:linear-gradient(90deg,var(--blue-soft),var(--pink-soft));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:.2em; text-transform:uppercase;
+    margin-bottom:18px;
+  }
+  .overlay p{ margin-bottom:12px; font-size:14px; line-height:1.7; color:var(--txt); }
+  .overlay strong{ color:var(--cyan); font-weight:600; }
+  .overlay-close{
+    position:absolute; top:14px; right:14px;
+    width:32px; height:32px;
+    background:rgba(255,45,146,.2);
+    border:1px solid rgba(255,45,146,.4);
+    border-radius:8px;
+    color:#fff; font-size:18px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* HISTORY ROW */
+  .hist-row{
+    display:flex; gap:8px; align-items:center;
+    padding:8px 0;
+    font-family:'Rajdhani'; font-size:13px;
+    border-bottom:1px solid rgba(120,80,200,.1);
+  }
+  .hist-row:last-child{ border-bottom:none; }
+  .hist-num{ color:var(--txt-dim); width:30px; font-family:'Orbitron'; font-size:11px; }
+  .hist-cards{ flex:1; color:#fff; letter-spacing:.05em; }
+  .hist-out{ font-size:11px; color:var(--txt-dim); letter-spacing:.1em; text-transform:uppercase; }
+  .hist-amt{ font-family:'Orbitron'; font-weight:700; font-size:13px; min-width:55px; text-align:right; }
+
+  /* placeholder card visuals */
+  .placeholder{
+    width:165px; height:235px; border-radius:14px;
+    border:2px dashed rgba(120,80,200,.3);
+  }
+
+  @media (max-width:980px){
+    .main{ grid-template-columns:1fr; }
+    .stats{ grid-template-columns:repeat(2,1fr); }
+    .cards{ gap:14px; }
+    .card-wrap{ width:120px; height:170px; }
+    .card-corner{ font-size:22px; }
+    .card-corner small{ font-size:18px; }
+    .card-center{ font-size:56px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<canvas id="particles"></canvas>
+
+<div class="stage">
+
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-mark">T</div>
+      <div>
+        <div class="logo-text">Triple Draw</div>
+        <div class="logo-tag">Card  ·  Probability  ·  Chance</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="active" data-view="play">Play</button>
+      <button data-view="stats">Stats</button>
+      <button data-view="rules">Rules</button>
+      <button data-view="history">History</button>
+    </nav>
+    <div class="balance" id="balanceBox">
+      <div>
+        <div class="balance-label">Balance</div>
+        <div class="balance-amount"><span>$</span><span id="balance">100</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <section class="table">
+      <div class="table-head">
+        <div class="deal-title">Round <span id="roundNum">1</span></div>
+        <div class="deal-status"><span class="live"></span><span id="deckStatus">Ready to deal</span></div>
+      </div>
+
+      <div class="cards" id="cards">
+        <div class="card-wrap"><div class="card" data-slot="0"><div class="card-face card-back"><div class="card-back-mark">TD</div></div><div class="card-face card-front"></div></div></div>
+        <div class="card-wrap"><div class="card" data-slot="1"><div class="card-face card-back"><div class="card-back-mark">TD</div></div><div class="card-face card-front"></div></div></div>
+        <div class="card-wrap"><div class="card" data-slot="2"><div class="card-face card-back"><div class="card-back-mark">TD</div></div><div class="card-face card-front"></div></div></div>
+      </div>
+
+      <div class="outcome" id="outcome">
+        <div>
+          <div class="outcome-label">★  Result</div>
+          <div class="outcome-name" id="outcomeName">Press deal to start</div>
+        </div>
+        <div class="outcome-payout zero" id="outcomePayout">—</div>
+      </div>
+
+      <button class="deal-btn" id="dealBtn">
+        Deal cards
+        <span class="deal-btn-sub">Press space  ·  $2 per round</span>
+      </button>
+    </section>
+
+    <aside class="panel">
+      <div class="panel-title">Payouts</div>
+
+      <div class="pay-row" data-cat="3K">
+        <div class="pay-rank">1</div>
+        <div class="pay-info">
+          <div class="pay-name">Three of a Kind</div>
+          <div class="pay-prob">0.24% chance</div>
+        </div>
+        <div class="pay-amt">$90</div>
+      </div>
+      <div class="pay-row" data-cat="3F">
+        <div class="pay-rank">2</div>
+        <div class="pay-info">
+          <div class="pay-name">Three Face Cards</div>
+          <div class="pay-prob">0.94% chance</div>
+        </div>
+        <div class="pay-amt">$30</div>
+      </div>
+      <div class="pay-row" data-cat="SC">
+        <div class="pay-rank">3</div>
+        <div class="pay-info">
+          <div class="pay-name">Same Colour</div>
+          <div class="pay-prob">23.35% chance</div>
+        </div>
+        <div class="pay-amt">$5</div>
+      </div>
+      <div class="pay-row" data-cat="A">
+        <div class="pay-rank">4</div>
+        <div class="pay-info">
+          <div class="pay-name">At Least One Ace</div>
+          <div class="pay-prob">16.51% chance</div>
+        </div>
+        <div class="pay-amt">$2</div>
+      </div>
+      <div class="pay-row" data-cat="N">
+        <div class="pay-rank">5</div>
+        <div class="pay-info">
+          <div class="pay-name">Nothing</div>
+          <div class="pay-prob">58.97% chance</div>
+        </div>
+        <div class="pay-amt">−$2</div>
+      </div>
+    </aside>
+
+  </main>
+
+  <footer class="stats">
+    <div class="stat">
+      <div class="stat-label">Rounds played</div>
+      <div class="stat-value" id="statRounds">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Win rate</div>
+      <div class="stat-value green" id="statWinRate">0%</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Biggest win</div>
+      <div class="stat-value gold" id="statBiggest">$0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Net profit</div>
+      <div class="stat-value pink" id="statNet">$0</div>
+    </div>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-box" style="position:relative">
+    <button class="overlay-close" id="overlayClose">×</button>
+    <div class="overlay-title" id="overlayTitle">Rules</div>
+    <div id="overlayBody"></div>
+  </div>
+</div>
+
+<script>
+const SUITS = [
+  {sym:'♠', col:'black'},
+  {sym:'♥', col:'red'},
+  {sym:'♦', col:'red'},
+  {sym:'♣', col:'black'}
+];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const FACES = new Set(['J','Q','K']);
+
+const state = {
+  balance:100,
+  round:0,
+  totalPlays:0,
+  wins:0,
+  biggestWin:0,
+  net:0,
+  history:[],
+  dealing:false
+};
+
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function buildDeck(){
+  const d=[];
+  for(const s of SUITS) for(const r of RANKS) d.push({rank:r,suit:s.sym,col:s.col});
+  return shuffle(d);
+}
+function classify(hand){
+  const ranks=hand.map(c=>c.rank);
+  const cols=hand.map(c=>c.col);
+  if(ranks[0]===ranks[1]&&ranks[1]===ranks[2]) return {cat:'3K',name:'Three of a Kind',net:88,gross:90};
+  if(ranks.every(r=>FACES.has(r))) return {cat:'3F',name:'Three Face Cards',net:28,gross:30};
+  if(cols[0]===cols[1]&&cols[1]===cols[2]) return {cat:'SC',name:'Same Colour',net:3,gross:5};
+  if(ranks.includes('A')) return {cat:'A',name:'At Least One Ace',net:0,gross:2};
+  return {cat:'N',name:'Nothing',net:-2,gross:0};
+}
+
+const cardEls=[...document.querySelectorAll('.card')];
+const cardFronts=cardEls.map(c=>c.querySelector('.card-front'));
+const dealBtn=document.getElementById('dealBtn');
+const balanceEl=document.getElementById('balance');
+const balanceBox=document.getElementById('balanceBox');
+const outcome=document.getElementById('outcome');
+const outcomeName=document.getElementById('outcomeName');
+const outcomePayout=document.getElementById('outcomePayout');
+const roundNum=document.getElementById('roundNum');
+const deckStatus=document.getElementById('deckStatus');
+const toast=document.getElementById('toast');
+const payRows=document.querySelectorAll('.pay-row');
+
+function paintCard(el, card){
+  const colCls = card.col==='red'?'red':'black';
+  el.innerHTML = `
+    <div class="card-corner tl ${colCls}">${card.rank}<small>${card.suit}</small></div>
+    <div class="card-center ${colCls}">${card.suit}</div>
+    <div class="card-corner br ${colCls}">${card.rank}<small>${card.suit}</small></div>
+  `;
+}
+
+function tweenNumber(el, from, to, dur=600){
+  const start=performance.now();
+  function step(now){
+    const t=Math.min(1,(now-start)/dur);
+    const v=Math.round(from+(to-from)*(1-Math.pow(1-t,3)));
+    el.textContent=v;
+    if(t<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function setStat(id,val){ document.getElementById(id).textContent = val; }
+
+function updateStats(){
+  setStat('statRounds', state.totalPlays);
+  const wr = state.totalPlays ? Math.round(100*state.wins/state.totalPlays) : 0;
+  setStat('statWinRate', wr+'%');
+  setStat('statBiggest', '+$'+state.biggestWin);
+  const net=state.net;
+  setStat('statNet', (net>=0?'+$':'-$')+Math.abs(net));
+  const netEl=document.getElementById('statNet');
+  netEl.classList.remove('green','red','pink');
+  netEl.classList.add(net>0?'green':(net<0?'red':'pink'));
+}
+
+function showToast(text, color='gold'){
+  toast.textContent=text;
+  if(color==='pink') toast.style.background='linear-gradient(90deg, rgba(255,45,146,.95), rgba(59,158,255,.95))';
+  else toast.style.background='linear-gradient(90deg, rgba(255,213,74,.95), rgba(255,45,146,.95))';
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'), 1800);
+}
+
+function spawnConfetti(intensity=80){
+  const canvas=document.getElementById('particles');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+  const colors=['#ffd54a','#ff2d92','#3b9eff','#00e5ff','#ff6bb5','#5fb0ff'];
+  const parts=[];
+  const cx=window.innerWidth/2, cy=window.innerHeight/2-50;
+  for(let i=0;i<intensity;i++){
+    parts.push({
+      x:cx+(Math.random()-.5)*200,
+      y:cy+(Math.random()-.5)*60,
+      vx:(Math.random()-.5)*14,
+      vy:Math.random()*-12-4,
+      g:.3,
+      r:Math.random()*5+3,
+      c:colors[Math.floor(Math.random()*colors.length)],
+      a:1, life:0
+    });
+  }
+  let raf;
+  function tick(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(const p of parts){
+      p.vy+=p.g; p.x+=p.vx; p.y+=p.vy;
+      p.life++; p.a=Math.max(0,1-p.life/120);
+      ctx.beginPath();
+      ctx.fillStyle=p.c; ctx.globalAlpha=p.a;
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    if(parts.some(p=>p.a>0)) raf=requestAnimationFrame(tick);
+    else { ctx.clearRect(0,0,canvas.width,canvas.height); cancelAnimationFrame(raf); }
+  }
+  tick();
+}
+
+function resetCardsToBack(){
+  cardEls.forEach(el=>{
+    el.classList.remove('flipped','dealing','win-glow');
+    el.querySelector('.card-front').innerHTML='';
+  });
+}
+
+async function deal(){
+  if(state.dealing) return;
+  if(state.balance<2){
+    showToast('Out of balance!','pink'); return;
+  }
+  state.dealing=true;
+  dealBtn.disabled=true;
+  payRows.forEach(r=>r.classList.remove('lit'));
+  outcome.classList.remove('win','lose','show');
+  outcomeName.textContent='Dealing...';
+  outcomePayout.textContent='—';
+  outcomePayout.className='outcome-payout zero';
+  resetCardsToBack();
+
+  state.balance-=2;
+  balanceEl.textContent=state.balance;
+
+  state.round++;
+  state.totalPlays++;
+  roundNum.textContent=state.round;
+  deckStatus.textContent='Shuffling deck';
+
+  await new Promise(r=>setTimeout(r,300));
+
+  const deck=buildDeck();
+  const hand=deck.slice(0,3);
+
+  for(let i=0;i<3;i++){
+    paintCard(cardFronts[i], hand[i]);
+    cardEls[i].classList.add('dealing');
+    await new Promise(r=>setTimeout(r,180));
+    cardEls[i].classList.add('flipped');
+    await new Promise(r=>setTimeout(r,420));
+  }
+
+  deckStatus.textContent='Live deck — 52 cards';
+  const result=classify(hand);
+
+  state.balance+=result.gross;
+  state.net += result.net;
+  if(result.net>0){ state.wins++; if(result.net>state.biggestWin) state.biggestWin=result.net; }
+
+  outcomeName.textContent=result.name;
+  outcomePayout.classList.remove('zero','neg');
+  if(result.net>0) outcomePayout.textContent='+$'+result.net;
+  else if(result.net===0){ outcomePayout.textContent='$0'; outcomePayout.classList.add('zero'); }
+  else { outcomePayout.textContent='−$'+Math.abs(result.net); outcomePayout.classList.add('neg'); }
+  outcome.classList.add(result.net>0?'win':'lose','show');
+
+  payRows.forEach(r=>{ if(r.dataset.cat===result.cat) r.classList.add('lit'); });
+
+  const litCard = cardEls;
+  if(result.cat==='3K'){
+    litCard.forEach(c=>c.classList.add('win-glow'));
+    spawnConfetti(160);
+    showToast('Jackpot! +$88');
+  } else if(result.cat==='3F'){
+    litCard.forEach(c=>c.classList.add('win-glow'));
+    spawnConfetti(100);
+    showToast('Big win! +$28');
+  } else if(result.cat==='SC'){
+    spawnConfetti(40);
+  }
+
+  const cur=parseInt(balanceEl.textContent);
+  tweenNumber(balanceEl, cur, state.balance, 700);
+  balanceBox.classList.remove('flash-up','flash-down');
+  void balanceBox.offsetWidth;
+  balanceBox.classList.add(result.net>=0?'flash-up':'flash-down');
+
+  state.history.unshift({n:state.round, hand, result});
+  if(state.history.length>50) state.history.length=50;
+
+  updateStats();
+
+  await new Promise(r=>setTimeout(r,400));
+  state.dealing=false;
+  dealBtn.disabled=false;
+}
+
+dealBtn.addEventListener('click', deal);
+window.addEventListener('keydown', e=>{
+  if(e.code==='Space'){ e.preventDefault(); deal(); }
+});
+
+const overlay=document.getElementById('overlay');
+const overlayTitle=document.getElementById('overlayTitle');
+const overlayBody=document.getElementById('overlayBody');
+const overlayClose=document.getElementById('overlayClose');
+overlayClose.addEventListener('click', ()=>overlay.classList.remove('show'));
+overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.classList.remove('show'); });
+
+document.querySelectorAll('.nav button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const v=btn.dataset.view;
+    if(v==='play') return;
+    overlayTitle.textContent={stats:'Session statistics', rules:'How to play', history:'Round history'}[v];
+    if(v==='rules'){
+      overlayBody.innerHTML=`
+        <p><strong>Goal:</strong> Get a 3-card hand that matches one of the winning categories.</p>
+        <p><strong>How a round works:</strong> You pay $2 to play. The deck is shuffled and the top 3 cards are dealt. Categories are checked in priority order — the first match wins.</p>
+        <p><strong>Priority matters:</strong> If your hand matches multiple categories, you only get the highest one. K♥ Q♥ J♥ counts as Three Face Cards ($25), not Same Colour ($5).</p>
+        <p><strong>Aces are NOT face cards:</strong> Only J, Q, K count as face cards. An Ace plus two face cards is NOT Three Face Cards.</p>
+        <p><strong>Theoretical expected value:</strong> −$0.0083 per play. House edge ≈ 0.42% — essentially a perfectly fair game (50/50).</p>
+        <p><strong>Tip:</strong> Press the Space bar instead of clicking — it's faster.</p>
+      `;
+    } else if(v==='stats'){
+      const ev = state.totalPlays ? (state.net/state.totalPlays) : 0;
+      overlayBody.innerHTML=`
+        <p><strong>Rounds played:</strong> ${state.totalPlays}</p>
+        <p><strong>Wins:</strong> ${state.wins} (${state.totalPlays?Math.round(100*state.wins/state.totalPlays):0}%)</p>
+        <p><strong>Total wagered:</strong> $${state.totalPlays*2}</p>
+        <p><strong>Net profit/loss:</strong> ${state.net>=0?'+$':'-$'}${Math.abs(state.net)}</p>
+        <p><strong>Biggest win:</strong> +$${state.biggestWin}</p>
+        <p><strong>Your experimental E(X):</strong> $${ev.toFixed(4)} per play</p>
+        <p><strong>Theoretical E(X):</strong> −$0.0083 per play</p>
+        <p style="color:var(--txt-dim); font-size:13px; margin-top:16px;">The longer you play, the closer your experimental E(X) should get to the theoretical value. This is the Law of Large Numbers in action.</p>
+      `;
+    } else if(v==='history'){
+      if(!state.history.length) overlayBody.innerHTML='<p>No rounds played yet. Press <strong>Deal cards</strong> to start.</p>';
+      else {
+        overlayBody.innerHTML = state.history.map(h=>{
+          const cards = h.hand.map(c=>`${c.rank}${c.suit}`).join('  ');
+          const colorCls = h.result.net>0?'green':(h.result.net<0?'red':'');
+          const amt = h.result.net>0?`+$${h.result.net}`:(h.result.net<0?`-$${Math.abs(h.result.net)}`:'$0');
+          return `<div class="hist-row">
+            <div class="hist-num">#${h.n}</div>
+            <div class="hist-cards">${cards}</div>
+            <div class="hist-out">${h.result.name}</div>
+            <div class="hist-amt" style="color:${h.result.net>0?'var(--green)':h.result.net<0?'var(--red)':'var(--txt-dim)'}">${amt}</div>
+          </div>`;
+        }).join('');
+      }
+    }
+    overlay.classList.add('show');
+    setTimeout(()=>{
+      document.querySelector('.nav button[data-view="play"]').click();
+    }, 50);
+    document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+    document.querySelector('.nav button[data-view="play"]').classList.add('active');
+  });
+});
+
+window.addEventListener('resize', ()=>{
+  const c=document.getElementById('particles');
+  c.width=window.innerWidth; c.height=window.innerHeight;
+});
+const c=document.getElementById('particles');
+c.width=window.innerWidth; c.height=window.innerHeight;
+
+updateStats();
+</script>
+
+</body>
+</html>
